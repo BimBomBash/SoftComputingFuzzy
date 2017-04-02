@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include <iostream>
+#include <list>
 #include <string>
 #include <algorithm>
 #include "Fuzzy.h"
@@ -7,54 +8,46 @@
 
 void Fuzzy::Fuzzification()
 {
-	IOType *si;
-	MFType *mf;
-
-	for (si = systemInputs; si != NULL; si = si->next) {
-		for (mf = si->membershipFunctions; mf != NULL; mf = mf->next) {
-			//ComputeDegreeOfMembership(mf,si->value);
+	for (std::list<IOType*>::iterator si = systemInputs.begin(); si != systemInputs.end(); ++si) {
+		for (std::list<MFType*>::iterator mf = (*si)->membershipFunctions.begin(); mf != (*si)->membershipFunctions.end(); ++mf) {
+			ComputeDegreeOfMembership(*mf,(*si)->value);
 		}
 	}
 }
 
 void Fuzzy::RuleEvaluation()
 {
-	RuleType *rule;
-	RuleElementType *ip;
-	RuleElementType *tp;
 	float strength;
 
-	for (rule = ruleBase; rule != NULL; rule = rule->next) {
+	for (std::list<RuleType*>::iterator rule = ruleBase.begin(); rule != ruleBase.end(); ++rule) {
 		strength = UPPER_LIMIT;
-		for (ip = rule->ifSide; ip != NULL; ip=ip->next) {
-			strength = std::min(strength, *ip->value);
+		for (std::list <RuleElementType*>::iterator ip = (*rule)->ifSide.begin(); ip != (*rule)->ifSide.end(); ++ip) {
+			strength = std::min(strength, *(*ip)->value);
 		}
-		for (tp = rule->thenSide; tp != NULL; tp = tp->next) {
-			*(tp->value) = std::max(strength, *(tp->value));
+		for (std::list<RuleElementType*>::iterator tp = (*rule)->thenSide.begin(); tp != (*rule)->thenSide.end(); ++tp) {
+			*((*tp)->value) = std::max(strength, *((*tp)->value));
 		}
 	}
 }
 
 void Fuzzy::Defuzzification()
 {
-	IOType *so;
-	MFType *mf;
 	float sumOfProducts;
 	float sumOfAreas;
 	float area;
 	float centroid;
 
-	for (so = systemOutputs; so != NULL; so == so->next) {
+	for (std::list<IOType*>::iterator so = systemOutputs.begin(); so != systemOutputs.end(); ++so) {
 		sumOfProducts = 0;
 		sumOfAreas = 0;
 
-		for (mf = so->membershipFunctions; mf != NULL; mf = mf->next) {
-			area = ComputeAreaOfTrapezoid(mf);
-			centroid = mf->point1 + (mf->point2 - mf->point1) / 2;
+		for (std::list<MFType*>::iterator mf = (*so)->membershipFunctions.begin(); mf != (*so)->membershipFunctions.end(); ++mf) {
+			area = ComputeAreaOfTrapezoid(*mf);
+			centroid = (*mf)->point1 + ((*mf)->point2 - (*mf)->point1) / 2;
 			sumOfProducts += area*centroid;
 			sumOfAreas += area;
 		}
-		so->value = sumOfProducts / sumOfAreas;
+		(*so)->value = sumOfProducts / sumOfAreas;
 	}
 }
 
@@ -69,7 +62,7 @@ void Fuzzy::ComputeDegreeOfMembership(MFType * _mf, float _input)
 		_mf->value = 0;
 	}
 	else {
-		_mf->value = std::min((_mf->slope1*delta1), (_mf->slope1*delta2);
+		_mf->value = std::min((_mf->slope1*delta1), (_mf->slope1*delta2));
 		_mf->value = std::min(_mf->value,(float) UPPER_LIMIT);
 	}
 }

@@ -9,31 +9,39 @@ struct MFType {
 	float point2;
 	float slope1;
 	float slope2;
-	MFType *next;
+	MFType(std::string _name, float _pointA, float _pointB, float _pointC, float _pointD) {
+		name = _name;
+		point1 = _pointA;
+		point2 = _pointB;
+		slope1 = UPPER_LIMIT / (_pointB - _pointA);
+		slope2 = UPPER_LIMIT / (_pointD - _pointC);
+	}
 };
 
 struct IOType {
 	std::string name;
 	float value;
-	MFType *membershipFunctions;
-	IOType *next;
+	std::list<MFType*> membershipFunctions;
+	IOType(std::string _name, float _value, std::list<MFType*> &_membershipFunctions) {
+		name = _name;
+		value = _value;
+		membershipFunctions = _membershipFunctions;
+	}
 };
 
 struct RuleElementType {
 	float *value;
-	RuleElementType *next;
 };
 
 struct RuleType {
-	RuleElementType *ifSide;
-	RuleElementType *thenSide;
-	RuleType *next;
+	std::list<RuleElementType*> ifSide;
+	std::list<RuleElementType*> thenSide;
 };
 
 class Fuzzy
 {
-	IOType *systemInputs;
-	IOType *systemOutputs;
+	std::list<IOType*> systemInputs;
+	std::list<IOType*> systemOutputs;
 
 	void GetSystemInputs();
 	void Fuzzification();
@@ -43,7 +51,7 @@ class Fuzzy
 	float ComputeAreaOfTrapezoid(MFType *_mf);
 	void PutSystemOutputs();
 public:
-	RuleType *ruleBase;
+	std::list<RuleType*> ruleBase;
 	void Update();
 	Fuzzy();
 	~Fuzzy();
