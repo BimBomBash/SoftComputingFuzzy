@@ -10,9 +10,9 @@ void Fuzzy::Fuzzification()
 	IOType *si;
 	MFType *mf;
 
-	for (si = systemInputs; si != NULL; si = si->next) {
-		for (mf = si->membershipFunctions; mf != NULL; mf = mf->next) {
-			//ComputeDegreeOfMembership(mf,si->value);
+	for (si = systemInputs; si != nullptr; si = si->next) {
+		for (mf = si->membershipFunctions; mf != nullptr; mf = mf->next) {
+			ComputeDegreeOfMembership(mf,si->value);
 		}
 	}
 }
@@ -24,12 +24,12 @@ void Fuzzy::RuleEvaluation()
 	RuleElementType *tp;
 	float strength;
 
-	for (rule = ruleBase; rule != NULL; rule = rule->next) {
+	for (rule = ruleBase; rule != nullptr; rule = rule->next) {
 		strength = UPPER_LIMIT;
-		for (ip = rule->ifSide; ip != NULL; ip=ip->next) {
+		for (ip = rule->ifSide; ip != nullptr; ip=ip->next) {
 			strength = std::min(strength, *ip->value);
 		}
-		for (tp = rule->thenSide; tp != NULL; tp = tp->next) {
+		for (tp = rule->thenSide; tp != nullptr; tp = tp->next) {
 			*(tp->value) = std::max(strength, *(tp->value));
 		}
 	}
@@ -44,18 +44,18 @@ void Fuzzy::Defuzzification()
 	float area;
 	float centroid;
 
-	for (so = systemOutputs; so != NULL; so == so->next) {
+	so = systemOutputs;
 		sumOfProducts = 0;
 		sumOfAreas = 0;
 
-		for (mf = so->membershipFunctions; mf != NULL; mf = mf->next) {
+		for (mf = so->membershipFunctions; mf != nullptr; mf = mf->next) {
 			area = ComputeAreaOfTrapezoid(mf);
 			centroid = mf->point1 + (mf->point2 - mf->point1) / 2;
 			sumOfProducts += area*centroid;
 			sumOfAreas += area;
 		}
 		so->value = sumOfProducts / sumOfAreas;
-	}
+	
 }
 
 void Fuzzy::ComputeDegreeOfMembership(MFType * _mf, float _input)
@@ -69,7 +69,7 @@ void Fuzzy::ComputeDegreeOfMembership(MFType * _mf, float _input)
 		_mf->value = 0;
 	}
 	else {
-		_mf->value = std::min((_mf->slope1*delta1), (_mf->slope1*delta2);
+		_mf->value = std::min((_mf->slope1*delta1), (_mf->slope1*delta2));
 		_mf->value = std::min(_mf->value,(float) UPPER_LIMIT);
 	}
 }
@@ -89,9 +89,13 @@ float Fuzzy::ComputeAreaOfTrapezoid(MFType * _mf)
 	return area;
 }
 
-void Fuzzy::Update()
+void Fuzzy::PutSystemOutputs()
 {
-	GetSystemInputs();
+	std::cout <<"Weighted Average of "<< systemOutputs->name <<": "<< systemOutputs->value<<std::endl;
+}
+
+void Fuzzy::Count()
+{
 	Fuzzification();
 	RuleEvaluation();
 	Defuzzification();
@@ -100,6 +104,14 @@ void Fuzzy::Update()
 
 Fuzzy::Fuzzy()
 {
+}
+
+Fuzzy::Fuzzy(IOType * _throttle, IOType * _load, IOType* _shift, RuleType * _rules)
+{
+	systemInputs = _throttle;
+	systemInputs->next = _load;
+	systemOutputs = _shift;
+	ruleBase = _rules;
 }
 
 
